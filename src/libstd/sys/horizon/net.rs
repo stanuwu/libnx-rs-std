@@ -8,6 +8,8 @@
 // option. This file may not be copied, modified, or distributed
 // except according to those terms.
 
+#![allow(dead_code)]
+
 use ffi::CStr;
 use io;
 use libc::{self, c_int, c_void, size_t, sockaddr, socklen_t, MSG_PEEK};
