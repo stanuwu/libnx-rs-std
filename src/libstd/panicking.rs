@@ -197,7 +197,32 @@ fn default_hook(info: &PanicInfo) {
     let thread = thread_info::current_thread();
     let name = thread.as_ref().and_then(|t| t.name()).unwrap_or("<unnamed>");
 
-    let write = |err: &mut dyn (::io::Write)| {
+    // 3DS-specific code begins here to display panics via the Error applet
+    use libctru::{errorInit, errorText, errorDisp, errorConf, ERROR_TEXT_WORD_WRAP,
+                  CFG_LANGUAGE_EN, consoleDebugInit, debugDevice_SVC};
+
+    let error_text = format!("thread '{}' panicked at '{}', {}", name, msg, location);
+
+    unsafe {
+        // Prepare error message for display
+        let mut error_conf: errorConf = mem::uninitialized();
+        errorInit(&mut error_conf,
+                  ERROR_TEXT_WORD_WRAP,
+                  CFG_LANGUAGE_EN);
+        errorText(&mut error_conf, error_text.as_ptr() as *const ::libc::c_char);
+
+        // Display the error
+        errorDisp(&mut error_conf);
+    }
+
+    // Let's also write to stderr using the debug console. The output will be
+    // visible in Citra if a custom logging filter such as `Debug.Emulated:Debug`
+    // is enabled in the logging section of `~/.config/citra-emu/sdl2-config.ini`
+    unsafe {
+        consoleDebugInit(debugDevice_SVC);
+    }
+
+    let write = |err: &mut ::io::Write| {
         let _ = writeln!(err, "thread '{}' panicked at '{}', {}",
                          name, msg, location);
 
