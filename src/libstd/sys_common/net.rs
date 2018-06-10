@@ -8,6 +8,8 @@
 // option. This file may not be copied, modified, or distributed
 // except according to those terms.
 
+#![allow(dead_code)]
+
 use cmp;
 use ffi::CString;
 use fmt;
@@ -21,37 +23,19 @@ use sys::net::netc as c;
 use sys_common::{AsInner, FromInner, IntoInner};
 use time::Duration;
 
-#[cfg(any(target_os = "dragonfly", target_os = "freebsd",
-          target_os = "ios", target_os = "macos",
-          target_os = "openbsd", target_os = "netbsd",
-          target_os = "solaris", target_os = "haiku", target_os = "l4re"))]
-use sys::net::netc::IPV6_JOIN_GROUP as IPV6_ADD_MEMBERSHIP;
-#[cfg(not(any(target_os = "dragonfly", target_os = "freebsd",
-              target_os = "ios", target_os = "macos",
-              target_os = "openbsd", target_os = "netbsd",
-              target_os = "solaris", target_os = "haiku", target_os = "l4re")))]
-use sys::net::netc::IPV6_ADD_MEMBERSHIP;
-#[cfg(any(target_os = "dragonfly", target_os = "freebsd",
-          target_os = "ios", target_os = "macos",
-          target_os = "openbsd", target_os = "netbsd",
-          target_os = "solaris", target_os = "haiku", target_os = "l4re"))]
-use sys::net::netc::IPV6_LEAVE_GROUP as IPV6_DROP_MEMBERSHIP;
-#[cfg(not(any(target_os = "dragonfly", target_os = "freebsd",
-              target_os = "ios", target_os = "macos",
-              target_os = "openbsd", target_os = "netbsd",
-              target_os = "solaris", target_os = "haiku", target_os = "l4re")))]
-use sys::net::netc::IPV6_DROP_MEMBERSHIP;
+// IPV6 stuff does not seem to be supported on 3DS. TODO: Determine if that's true
+const IPV6_ADD_MEMBERSHIP: c_int = 0x0;
+const IPV6_DROP_MEMBERSHIP: c_int = 0x0;
+const IPV6_MULTICAST_LOOP: c_int = 0x0;
+const IPV6_V6ONLY: c_int = 0x0;
 
-#[cfg(any(target_os = "linux", target_os = "android",
-          target_os = "dragonfly", target_os = "freebsd",
-          target_os = "openbsd", target_os = "netbsd",
-          target_os = "haiku", target_os = "bitrig"))]
-use libc::MSG_NOSIGNAL;
-#[cfg(not(any(target_os = "linux", target_os = "android",
-              target_os = "dragonfly", target_os = "freebsd",
-              target_os = "openbsd", target_os = "netbsd",
-              target_os = "haiku", target_os = "bitrig")))]
+// Neither are signals
 const MSG_NOSIGNAL: c_int = 0x0;
+
+// These constants are also currently missing from libctru. TODO: Find them?
+const SO_SNDTIMEO: c_int = 0x0;
+const SO_RCVTIMEO: c_int = 0x0;
+const SO_BROADCAST: c_int = 0x0;
 
 ////////////////////////////////////////////////////////////////////////////////
 // sockaddr and misc bindings
@@ -166,9 +150,27 @@ pub fn lookup_host(host: &str) -> io::Result<LookupHost> {
     hints.ai_socktype = c::SOCK_STREAM;
     let mut res = ptr::null_mut();
     unsafe {
-        cvt_gai(c::getaddrinfo(c_host.as_ptr(), ptr::null(), &hints, &mut res)).map(|_| {
-            LookupHost { original: res, cur: res }
-        })
+        match cvt_gai(c::getaddrinfo(c_host.as_ptr() as *const u8, ptr::null(), &hints, &mut res)) {
+            Ok(_) => {
+                Ok(LookupHost { original: res, cur: res })
+            },
+            #[cfg(target_env = "gnu")]
+            Err(e) => {
+                // If we're running glibc prior to version 2.26, the lookup
+                // failure could be caused by caching a stale /etc/resolv.conf.
+                // We need to call libc::res_init() to clear the cache. But we
+                // shouldn't call it in on any other platform, because other
+                // res_init implementations aren't thread-safe. See
+                // https://github.com/rust-lang/rust/issues/41570 and
+                // https://github.com/rust-lang/rust/issues/43592.
+                use sys::net::res_init_if_glibc_before_2_26;
+                let _ = res_init_if_glibc_before_2_26();
+                Err(e)
+            },
+            // the cfg is needed here to avoid an "unreachable pattern" warning
+            #[cfg(not(target_env = "gnu"))]
+            Err(e) => Err(e),
+        }
     }
 }
 
@@ -204,19 +206,19 @@ impl TcpStream {
     pub fn into_socket(self) -> Socket { self.inner }
 
     pub fn set_read_timeout(&self, dur: Option<Duration>) -> io::Result<()> {
-        self.inner.set_timeout(dur, c::SO_RCVTIMEO)
+        self.inner.set_timeout(dur, SO_RCVTIMEO)
     }
 
     pub fn set_write_timeout(&self, dur: Option<Duration>) -> io::Result<()> {
-        self.inner.set_timeout(dur, c::SO_SNDTIMEO)
+        self.inner.set_timeout(dur, SO_SNDTIMEO)
     }
 
     pub fn read_timeout(&self) -> io::Result<Option<Duration>> {
-        self.inner.timeout(c::SO_RCVTIMEO)
+        self.inner.timeout(SO_RCVTIMEO)
     }
 
     pub fn write_timeout(&self) -> io::Result<Option<Duration>> {
-        self.inner.timeout(c::SO_SNDTIMEO)
+        self.inner.timeout(SO_SNDTIMEO)
     }
 
     pub fn peek(&self, buf: &mut [u8]) -> io::Result<usize> {
@@ -372,11 +374,11 @@ impl TcpListener {
     }
 
     pub fn set_only_v6(&self, only_v6: bool) -> io::Result<()> {
-        setsockopt(&self.inner, c::IPPROTO_IPV6, c::IPV6_V6ONLY, only_v6 as c_int)
+        setsockopt(&self.inner, c::IPPROTO_IPV6, IPV6_V6ONLY, only_v6 as c_int)
     }
 
     pub fn only_v6(&self) -> io::Result<bool> {
-        let raw: c_int = getsockopt(&self.inner, c::IPPROTO_IPV6, c::IPV6_V6ONLY)?;
+        let raw: c_int = getsockopt(&self.inner, c::IPPROTO_IPV6, IPV6_V6ONLY)?;
         Ok(raw != 0)
     }
 
@@ -461,27 +463,27 @@ impl UdpSocket {
     }
 
     pub fn set_read_timeout(&self, dur: Option<Duration>) -> io::Result<()> {
-        self.inner.set_timeout(dur, c::SO_RCVTIMEO)
+        self.inner.set_timeout(dur, SO_RCVTIMEO)
     }
 
     pub fn set_write_timeout(&self, dur: Option<Duration>) -> io::Result<()> {
-        self.inner.set_timeout(dur, c::SO_SNDTIMEO)
+        self.inner.set_timeout(dur, SO_SNDTIMEO)
     }
 
     pub fn read_timeout(&self) -> io::Result<Option<Duration>> {
-        self.inner.timeout(c::SO_RCVTIMEO)
+        self.inner.timeout(SO_RCVTIMEO)
     }
 
     pub fn write_timeout(&self) -> io::Result<Option<Duration>> {
-        self.inner.timeout(c::SO_SNDTIMEO)
+        self.inner.timeout(SO_SNDTIMEO)
     }
 
     pub fn set_broadcast(&self, broadcast: bool) -> io::Result<()> {
-        setsockopt(&self.inner, c::SOL_SOCKET, c::SO_BROADCAST, broadcast as c_int)
+        setsockopt(&self.inner, c::SOL_SOCKET, SO_BROADCAST, broadcast as c_int)
     }
 
     pub fn broadcast(&self) -> io::Result<bool> {
-        let raw: c_int = getsockopt(&self.inner, c::SOL_SOCKET, c::SO_BROADCAST)?;
+        let raw: c_int = getsockopt(&self.inner, c::SOL_SOCKET, SO_BROADCAST)?;
         Ok(raw != 0)
     }
 
@@ -504,11 +506,11 @@ impl UdpSocket {
     }
 
     pub fn set_multicast_loop_v6(&self, multicast_loop_v6: bool) -> io::Result<()> {
-        setsockopt(&self.inner, c::IPPROTO_IPV6, c::IPV6_MULTICAST_LOOP, multicast_loop_v6 as c_int)
+        setsockopt(&self.inner, c::IPPROTO_IPV6, IPV6_MULTICAST_LOOP, multicast_loop_v6 as c_int)
     }
 
     pub fn multicast_loop_v6(&self) -> io::Result<bool> {
-        let raw: c_int = getsockopt(&self.inner, c::IPPROTO_IPV6, c::IPV6_MULTICAST_LOOP)?;
+        let raw: c_int = getsockopt(&self.inner, c::IPPROTO_IPV6, IPV6_MULTICAST_LOOP)?;
         Ok(raw != 0)
     }
 
