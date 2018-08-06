@@ -46,7 +46,7 @@ pub fn error_string(errno: i32) -> String {
 
     let p = buf.as_mut_ptr();
     unsafe {
-        if strerror_r(errno as c_int, p, buf.len()) < 0 {
+        if strerror_r(errno as c_int, p, buf.len() as usize) < 0 {
             panic!("strerror_r failure");
         }
 

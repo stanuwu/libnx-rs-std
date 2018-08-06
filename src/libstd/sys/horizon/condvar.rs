@@ -15,15 +15,26 @@ use intrinsics::atomic_cxchg;
 use ptr;
 use time::Duration;
 
+#[cfg(target_arch = "aarch64")]
+use libnx_rs::{libnx};
+
 use sys::mutex::{self, Mutex};
 
+#[cfg(not(target_arch = "aarch64"))]
 pub struct Condvar {
     lock: UnsafeCell<*mut ::libctru::LightLock>,
+}
+
+#[cfg(target_arch = "aarch64")]
+pub struct Condvar {
+    tag : u32, 
+    lock: UnsafeCell<*mut libnx::CondVar>,
 }
 
 unsafe impl Send for Condvar {}
 unsafe impl Sync for Condvar {}
 
+#[cfg(not(target_arch = "aarch64"))]
 impl Condvar {
     pub const fn new() -> Condvar {
         Condvar {
@@ -130,6 +141,76 @@ impl Condvar {
 
             now.elapsed() < dur
         }
+    }
+
+    #[inline]
+    pub unsafe fn destroy(&self) {
+        *self.lock.get() = ptr::null_mut();
+    }
+}
+
+#[cfg(target_arch = "aarch64")]
+impl Condvar {
+    pub const fn new() -> Condvar {
+        Condvar {
+            tag : 0,
+            lock: UnsafeCell::new(ptr::null_mut()),
+        }
+    }
+
+    #[inline]
+    pub unsafe fn init(&mut self) {
+        self.tag = 0;
+        *self.lock.get() = ptr::null_mut();
+    }
+
+    #[inline]
+    pub fn notify_one(&self) {
+        unsafe {
+            libnx::condvarWake(*self.lock.get(), 1);
+        }
+    }
+
+    #[inline]
+    pub fn notify_all(&self) {
+        unsafe {
+            let lock = self.lock.get();
+
+            if *lock == ptr::null_mut() {
+                return;
+            }
+
+            libnx::condvarWake(*self.lock.get(), -1);
+
+        }
+    }
+
+    #[inline]
+    pub fn wait(&self, mutex: &Mutex) {
+        self.wait_timeout(mutex, Duration::from_millis(u64::max_value()));
+    }
+
+    #[inline]
+    pub fn wait_timeout(&self, mutex: &Mutex, dur: Duration) -> bool {
+        let dur_millis = (dur.as_secs() * 1000) + (dur.subsec_millis() as u64);
+        unsafe {
+            let lock = self.lock.get();
+
+            if ((**lock).mutex) != mutex::raw(mutex) as *mut i32 {
+                if *lock != ptr::null_mut() {
+                    panic!("Condvar used with more than one Mutex");
+                }
+
+                atomic_cxchg(lock as *mut usize, 0, mutex::raw(mutex) as usize);
+            }
+
+            mutex.unlock();
+
+            libnx::condvarWaitTimeout(*self.lock.get(), dur_millis);
+
+            mutex.lock();
+        }
+        true
     }
 
     #[inline]

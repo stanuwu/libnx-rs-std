@@ -316,6 +316,7 @@
 #![feature(non_exhaustive)]
 
 #![default_lib_allocator]
+#![feature(alloc_error_handler)]
 
 // Always use alloc_system during stage0 since we don't know if the alloc_*
 // crate the stage0 compiler will pick by default is enabled (e.g.
@@ -352,12 +353,19 @@ extern crate alloc_system;
 extern crate libc;
 
 // 3DS-specific dependency
-extern crate ctru_sys as libctru;
+#[cfg(all(target_os = "horizon", not(target_arch = "aarch64")))]
+extern crate ctry_sys as libctru;
+
+#[cfg(all(target_os="horizon", target_arch = "aarch64"))]
+extern crate libnx_rs;
+
+
+
 
 // We always need an unwinder currently for backtraces
-#[doc(masked)]
-#[allow(unused_extern_crates)]
-extern crate unwind;
+//#[doc(masked)]
+//#[allow(unused_extern_crates)]
+//extern crate unwind;
 
 // During testing, this crate is not actually the "real" std library, but rather
 // it links to the real std library, which was compiled from this same source

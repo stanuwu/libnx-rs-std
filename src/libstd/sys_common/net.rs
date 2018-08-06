@@ -234,7 +234,7 @@ impl TcpStream {
         let ret = cvt(unsafe {
             c::send(*self.inner.as_inner(),
                     buf.as_ptr() as *const c_void,
-                    len,
+                    len as usize,
                     MSG_NOSIGNAL)
         })?;
         Ok(ret as usize)
@@ -452,7 +452,7 @@ impl UdpSocket {
         let (dstp, dstlen) = dst.into_inner();
         let ret = cvt(unsafe {
             c::sendto(*self.inner.as_inner(),
-                      buf.as_ptr() as *const c_void, len,
+                      buf.as_ptr() as *const c_void, len as usize,
                       MSG_NOSIGNAL, dstp, dstlen)
         })?;
         Ok(ret as usize)
@@ -580,7 +580,7 @@ impl UdpSocket {
         let ret = cvt(unsafe {
             c::send(*self.inner.as_inner(),
                     buf.as_ptr() as *const c_void,
-                    len,
+                    len as usize,
                     MSG_NOSIGNAL)
         })?;
         Ok(ret as usize)
