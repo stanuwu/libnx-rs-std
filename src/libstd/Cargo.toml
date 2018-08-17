@@ -16,7 +16,7 @@ crate-type = ["dylib", "rlib"]
 #alloc = { git = "https://github.com/phil-opp/nightly-liballoc" }
 #alloc_jemalloc = { path = "../liballoc_jemalloc", optional = true }
 alloc_system = { git = "https://github.com/ischeinkman/libnx-rs-alloc_system" }
-#panic_unwind = { path = "../libpanic_unwind", optional = true }
+panic_unwind = { path = "../../../libpanic_unwind/libpanic_unwind"}
 panic_abort = { path = "../libpanic_abort" }
 #core = { path = "../libcore" }
 #libc = { path = "../rustc/libc_shim" }
@@ -47,10 +47,11 @@ libnx-rs = { git = "https://github.com/ischeinkman/libnx-rs"}
 cc = "1.0"
 
 [features]
-backtrace = []
+default = ["panic-unwind"]
+#backtrace = []
 #debug-jemalloc = ["alloc_jemalloc/debug"]
 #jemalloc = ["alloc_jemalloc"]
 force_alloc_system = []
-#panic-unwind = ["panic_unwind"]
+panic-unwind = []
 #profiler = ["profiler_builtins"]
 wasm_syscall = []
