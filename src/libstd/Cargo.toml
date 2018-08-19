@@ -40,7 +40,7 @@ rand = "0.4"
 #rustc_tsan = { path = "../librustc_tsan" }
 
 [target.aarch64-none-elf.dependencies]
-libnx-rs = { git = "https://github.com/ischeinkman/libnx-rs"}
+libnx-rs = { git = "https://github.com/ischeinkman/libnx-rs", features = ["sysroot"]}
 
 
 [build-dependencies]
