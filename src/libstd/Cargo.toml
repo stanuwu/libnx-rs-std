@@ -16,7 +16,7 @@ crate-type = ["dylib", "rlib"]
 #alloc = { git = "https://github.com/phil-opp/nightly-liballoc" }
 #alloc_jemalloc = { path = "../liballoc_jemalloc", optional = true }
 alloc_system = { git = "https://github.com/ischeinkman/libnx-rs-alloc_system" }
-panic_unwind = { path = "../../../libpanic_unwind/libpanic_unwind"}
+panic_unwind = { git = "https://github.com/ischeinkman/libpanic_unwind" }
 panic_abort = { path = "../libpanic_abort" }
 #core = { path = "../libcore" }
 #libc = { path = "../rustc/libc_shim" }
