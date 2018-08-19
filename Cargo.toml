@@ -1,0 +1,5 @@
+[workspace]
+members = [
+    "src/libstd",
+    "src/libpanic_abort",
+]
