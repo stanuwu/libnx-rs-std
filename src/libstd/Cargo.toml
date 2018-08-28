@@ -42,6 +42,9 @@ unwind = { path = "../libunwind" }
 libnx-rs = { git = "https://github.com/ischeinkman/libnx-rs", features = ["sysroot"]}
 
 
+[target.x86_64-fortanix-unknown-sgx.dependencies]
+fortanix-sgx-abi = { path = "../rustc/fortanix-sgx-abi_shim" }
+
 [build-dependencies]
 cc = "1.0"
 
