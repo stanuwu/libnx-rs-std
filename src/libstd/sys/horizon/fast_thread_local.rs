@@ -43,6 +43,11 @@ pub unsafe fn register_dtor(t: *mut u8, dtor: unsafe extern fn(*mut u8)) {
     register_dtor_fallback(t, dtor);
 }
 
+#[cfg(all(target_os = "horizon", target_arch="aarch64"))]
+pub unsafe fn register_dtor(t: *mut u8, dtor: unsafe extern fn(*mut u8)) {
+    //NOP
+}
+
 // macOS's analog of the above linux function is this _tlv_atexit function.
 // The disassembly of thread_local globals in C++ (at least produced by
 // clang) will have this show up in the output.
