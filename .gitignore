@@ -63,3 +63,4 @@ version.texi
 
 no_llvm_build
 
+Cargo.lock
