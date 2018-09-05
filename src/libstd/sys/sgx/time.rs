@@ -9,7 +9,7 @@
 // except according to those terms.
 
 use time::Duration;
-use sys::unsupported_err;
+use super::abi::usercalls;
 
 #[derive(Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Debug, Hash)]
 pub struct Instant(Duration);
@@ -21,25 +21,25 @@ pub const UNIX_EPOCH: SystemTime = SystemTime(Duration::from_secs(0));
 
 impl Instant {
     pub fn now() -> Instant {
-        panic!("{}", unsupported_err());
+        Instant(usercalls::insecure_time())
     }
 
     pub fn sub_instant(&self, other: &Instant) -> Duration {
         self.0 - other.0
     }
 
-    pub fn add_duration(&self, other: &Duration) -> Instant {
-        Instant(self.0 + *other)
+    pub fn checked_add_duration(&self, other: &Duration) -> Option<Instant> {
+        Some(Instant(self.0.checked_add(*other)?))
     }
 
-    pub fn sub_duration(&self, other: &Duration) -> Instant {
-        Instant(self.0 - *other)
+    pub fn checked_sub_duration(&self, other: &Duration) -> Option<Instant> {
+        Some(Instant(self.0.checked_sub(*other)?))
     }
 }
 
 impl SystemTime {
     pub fn now() -> SystemTime {
-        panic!("{}", unsupported_err());
+        SystemTime(usercalls::insecure_time())
     }
 
     pub fn sub_time(&self, other: &SystemTime)
@@ -47,15 +47,11 @@ impl SystemTime {
         self.0.checked_sub(other.0).ok_or_else(|| other.0 - self.0)
     }
 
-    pub fn add_duration(&self, other: &Duration) -> SystemTime {
-        SystemTime(self.0 + *other)
-    }
-
     pub fn checked_add_duration(&self, other: &Duration) -> Option<SystemTime> {
-        self.0.checked_add(*other).map(|d| SystemTime(d))
+        Some(SystemTime(self.0.checked_add(*other)?))
     }
 
-    pub fn sub_duration(&self, other: &Duration) -> SystemTime {
-        SystemTime(self.0 - *other)
+    pub fn checked_sub_duration(&self, other: &Duration) -> Option<SystemTime> {
+        Some(SystemTime(self.0.checked_sub(*other)?))
     }
 }

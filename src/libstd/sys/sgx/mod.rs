@@ -18,6 +18,7 @@ use os::raw::c_char;
 use sync::atomic::{AtomicBool, Ordering};
 
 pub mod abi;
+mod waitqueue;
 
 pub mod alloc;
 pub mod args;
@@ -26,6 +27,7 @@ pub mod backtrace;
 pub mod cmath;
 pub mod condvar;
 pub mod env;
+pub mod fd;
 pub mod fs;
 pub mod memchr;
 pub mod mutex;
