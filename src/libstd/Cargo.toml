@@ -37,6 +37,10 @@ rustc_lsan = { path = "../librustc_lsan" }
 rustc_msan = { path = "../librustc_msan" }
 rustc_tsan = { path = "../librustc_tsan" }
 
+[target.aarch64-none-elf.dependencies]
+libnx-rs = { git = "https://github.com/ischeinkman/libnx-rs", features = ["sysroot"]}
+
+
 [build-dependencies]
 cc = "1.0"
 build_helper = { path = "../build_helper" }
