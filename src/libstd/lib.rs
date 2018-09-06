@@ -279,7 +279,6 @@
 #![feature(on_unimplemented)]
 #![feature(optin_builtin_traits)]
 #![feature(panic_internals)]
-#![feature(panic_unwind)]
 #![feature(pin)]
 #![feature(prelude_import)]
 #![feature(ptr_internals)]
@@ -316,7 +315,8 @@
 #![feature(non_exhaustive)]
 
 #![default_lib_allocator]
-#![feature(alloc_error_handler)]
+
+#![feature(extern_prelude)]
 
 // Always use alloc_system during stage0 since we don't know if the alloc_*
 // crate the stage0 compiler will pick by default is enabled (e.g.
@@ -528,6 +528,7 @@ pub mod rt;
 #[allow(missing_debug_implementations, missing_docs, dead_code)]
 #[unstable(feature = "stdsimd", issue = "48556")]
 #[cfg(all(not(stage0), not(test)))]
+#[cfg(not(target_os = "horizon"))] //TODO: not need to disable stdsimd for horizon
 mod stdsimd;
 
 // A "fake" module needed by the `stdsimd` module to compile, not actually
@@ -539,6 +540,7 @@ mod coresimd {
 
 #[stable(feature = "simd_arch", since = "1.27.0")]
 #[cfg(all(not(stage0), not(test)))]
+#[cfg(not(target_os = "horizon"))] //TODO: not need to disable stdsimd for horizon
 pub use stdsimd::arch;
 
 // Include a number of private modules that exist solely to provide

@@ -24,7 +24,8 @@ fn main() {
         !target.contains("cloudabi") &&
         !target.contains("emscripten") &&
         !target.contains("msvc") &&
-        !target.contains("wasm32")
+        !target.contains("wasm32") && 
+        !target.contains("horizon")
     {
         let _ = build_libbacktrace(&target);
     }
