@@ -179,6 +179,7 @@ mod platform {
 
     #[cfg(any(target_os = "android",
               target_os = "hermit",
+              target_os = "horizon",
               target_os = "redox",
               target_os = "solaris"))]
     #[inline]
@@ -205,6 +206,7 @@ mod platform {
 
     #[cfg(not(any(target_os = "android",
                   target_os = "hermit",
+                  target_os = "horizon",
                   target_os = "redox",
                   target_os = "solaris")))]
     #[inline]
