@@ -311,6 +311,7 @@
 #![feature(panic_info_message)]
 #![cfg_attr(stage0, feature(panic_implementation))]
 #![feature(non_exhaustive)]
+#![feature(panic_unwind)]
 
 #![default_lib_allocator]
 
