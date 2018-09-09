@@ -354,8 +354,8 @@ extern crate libc;
 extern crate ctru_sys as libctru;
 
 // We always need an unwinder currently for backtraces
-#[doc(masked)]
-#[allow(unused_extern_crates)]
+//#[doc(masked)]
+//#[allow(unused_extern_crates)]
 extern crate unwind;
 
 // During testing, this crate is not actually the "real" std library, but rather
