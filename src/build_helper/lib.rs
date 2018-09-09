@@ -200,6 +200,7 @@ pub fn native_lib_boilerplate(
 ) -> Result<NativeLibBoilerplate, ()> {
     let current_dir = PathBuf::from(env::var("CARGO_MANIFEST_DIR").unwrap());
     let src_dir = current_dir.join("..").join(src_name);
+    println!("Jemalloc building with PWD: {}, src_dir: {}", current_dir.to_str().unwrap_or("NULL"), src_dir.to_str().unwrap_or("NULL"));
     rerun_if_changed_anything_in_dir(&src_dir);
 
     let out_dir = env::var_os("RUSTBUILD_NATIVE_DIR").unwrap_or(env::var_os("OUT_DIR").unwrap());
