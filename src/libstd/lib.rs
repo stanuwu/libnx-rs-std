@@ -365,7 +365,7 @@ extern crate libnx_rs;
 // We always need an unwinder currently for backtraces
 //#[doc(masked)]
 //#[allow(unused_extern_crates)]
-//extern crate unwind;
+extern crate unwind;
 
 // During testing, this crate is not actually the "real" std library, but rather
 // it links to the real std library, which was compiled from this same source
