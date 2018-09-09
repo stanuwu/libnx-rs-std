@@ -65,3 +65,6 @@
 	url = https://github.com/rust-lang-nursery/clang.git
 	branch = rust-release-80-v1
   
+[submodule "src/tools/rust-installer"]
+	path = src/tools/rust-installer
+	url = https://github.com/rust-lang/rust-installer.git
