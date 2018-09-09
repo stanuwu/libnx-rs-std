@@ -313,6 +313,7 @@
 #![cfg_attr(stage0, feature(panic_implementation))]
 #![cfg_attr(not(stage0), feature(panic_handler))]
 #![feature(non_exhaustive)]
+#![feature(panic_unwind)]
 
 #![default_lib_allocator]
 
