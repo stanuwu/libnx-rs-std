@@ -24,8 +24,7 @@ fn main() {
         !target.contains("cloudabi") &&
         !target.contains("emscripten") &&
         !target.contains("msvc") &&
-        !target.contains("wasm32") && 
-        !target.contains("horizon")
+        !target.contains("wasm32") 
     {
         let _ = build_libbacktrace(&target);
     }
@@ -135,6 +134,11 @@ fn build_libbacktrace(target: &str) -> Result<(), ()> {
     build.define("_GNU_SOURCE", "1");
     build.define("_LARGE_FILES", "1");
     build.target(target);
+
+    if target == "aarch64-none-elf" {
+        build.compiler("aarch64-none-elf-gcc");
+        build.archiver("aarch64-none-elf-ar");
+    }
 
     build.compile("backtrace");
     Ok(())
