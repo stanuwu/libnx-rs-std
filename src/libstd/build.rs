@@ -124,7 +124,8 @@ fn build_libbacktrace(target: &str) -> Result<(), ()> {
        !target.contains("solaris") &&
        !target.contains("redox") &&
        !target.contains("android") &&
-       !target.contains("haiku") {
+       !target.contains("haiku")  &&
+       target != "aarch64-none-elf" {
         build.define("HAVE_DL_ITERATE_PHDR", "1");
     }
     build.define("_GNU_SOURCE", "1");
