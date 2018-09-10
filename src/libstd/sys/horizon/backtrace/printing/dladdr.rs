@@ -40,6 +40,7 @@ struct Dl_info {
     dli_saddr: *mut libc::c_void,
 }
 
-extern {
-    fn dladdr(addr: *const libc::c_void, info: *mut Dl_info) -> libc::c_int;
+fn dladdr(addr: *const libc::c_void, info: *mut Dl_info) -> libc::c_int {
+    //TODO: Link this file to however libnx resolves the debug symbols
+    -1
 }
