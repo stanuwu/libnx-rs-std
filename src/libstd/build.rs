@@ -130,6 +130,7 @@ fn build_libbacktrace(target: &str) -> Result<(), ()> {
     }
     build.define("_GNU_SOURCE", "1");
     build.define("_LARGE_FILES", "1");
+    build.target(target);
 
     build.compile("backtrace");
     Ok(())
