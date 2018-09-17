@@ -744,6 +744,11 @@ fn remove_dir_all_recursive(path: &Path) -> io::Result<()> {
     rmdir(path)
 }
 
+#[cfg(target_os = "horizon")]
+pub fn readlink(p: &Path) -> io::Result<PathBuf> {
+    Err(Error::new(ErrorKind::NotFound, "Readlink not yet implemented."))
+}
+#[cfg(not(target_os = "horizon"))]
 pub fn readlink(p: &Path) -> io::Result<PathBuf> {
     let c_path = cstr(p)?;
     let p = c_path.as_ptr() as *const u8;
@@ -771,10 +776,12 @@ pub fn readlink(p: &Path) -> io::Result<PathBuf> {
 }
 
 pub fn symlink(src: &Path, dst: &Path) -> io::Result<()> {
+    Err(Error::new(ErrorKind::NotFound, "Symlink method now yet implemented!"))
+    /*
     let src = cstr(src)?;
     let dst = cstr(dst)?;
     cvt(unsafe { libc::symlink(src.as_ptr() as *const u8, dst.as_ptr() as *const u8) })?;
-    Ok(())
+    Ok(())*/
 }
 
 pub fn link(src: &Path, dst: &Path) -> io::Result<()> {
@@ -803,6 +810,7 @@ pub fn lstat(p: &Path) -> io::Result<FileAttr> {
 }
 
 pub fn canonicalize(p: &Path) -> io::Result<PathBuf> {
+    Err(io::Error::new(io::ErrorKind::NotFound, "Realpath is not implemented within canonicalize."))/*
     let path = CString::new(p.as_os_str().as_bytes())?;
     let buf;
     unsafe {
@@ -813,7 +821,7 @@ pub fn canonicalize(p: &Path) -> io::Result<PathBuf> {
         buf = CStr::from_ptr(r as *const i8).to_bytes().to_vec();
         libc::free(r as *mut _);
     }
-    Ok(PathBuf::from(OsString::from_vec(buf)))
+    Ok(PathBuf::from(OsString::from_vec(buf)))*/
 }
 
 #[cfg(not(any(target_os = "linux", target_os = "android")))]
