@@ -86,7 +86,7 @@ impl FileDesc {
             }
         }
 
-        #[cfg(not(any(target_os = "android", target_os = "emscripten")))]
+        #[cfg(not(any(target_os = "android", target_os = "emscripten", target_os = "horizon")))]
         unsafe fn cvt_pread64(fd: c_int, buf: *mut c_void, count: usize, offset: i64)
             -> io::Result<isize>
         {
@@ -97,6 +97,13 @@ impl FileDesc {
             cvt(pread64(fd, buf, count, offset))
         }
 
+        #[cfg(target_os = "horizon")]
+        unsafe fn cvt_pread64(_fd: c_int, _buf: *mut c_void, _count: usize, _offset: i64)
+            ->  io::Result<isize> 
+        {
+            Err(io::Error::new(io::ErrorKind::NotFound, "Pread not yet implemented."))
+        }
+
         unsafe {
             cvt_pread64(self.fd,
                         buf.as_mut_ptr() as *mut c_void,
@@ -104,6 +111,7 @@ impl FileDesc {
                         offset as i64)
                 .map(|n| n as usize)
         }
+            
     }
 
     pub fn write(&self, buf: &[u8]) -> io::Result<usize> {
@@ -134,7 +142,7 @@ impl FileDesc {
             }
         }
 
-        #[cfg(not(any(target_os = "android", target_os = "emscripten")))]
+        #[cfg(not(any(target_os = "android", target_os = "emscripten", target_os = "horizon")))]
         unsafe fn cvt_pwrite64(fd: c_int, buf: *const c_void, count: usize, offset: i64)
             -> io::Result<isize>
         {
@@ -143,6 +151,14 @@ impl FileDesc {
             #[cfg(not(target_os = "linux"))]
             use libc::pwrite as pwrite64;
             cvt(pwrite64(fd, buf, count, offset))
+        }
+
+        #[cfg(target_os = "horizon")]
+        unsafe fn cvt_pwrite64(_fd: c_int, _buf: *const c_void, _count: usize, _offset: i64)
+            -> io::Result<isize>
+        {
+            Err(io::Error::new(io::ErrorKind::NotFound, "Pwrite not yet implemented."))
+
         }
 
         unsafe {
