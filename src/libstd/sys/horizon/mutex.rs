@@ -61,9 +61,8 @@ pub struct ReentrantMutex { inner: UnsafeCell<::libctru::RecursiveLock> }
 unsafe impl Send for ReentrantMutex {}
 unsafe impl Sync for ReentrantMutex {}
 
-impl ReentrantMutex {
-    pub unsafe fn uninitialized() -> ReentrantMutex {
-        ReentrantMutex { inner: mem::uninitialized() }
+    pub struct Mutex {
+        pub inner: UnsafeCell<libnx::Mutex>,
     }
 
     pub unsafe fn init(&mut self) {
