@@ -167,7 +167,9 @@ impl Condvar {
     #[inline]
     pub fn notify_one(&self) {
         unsafe {
-            libnx::condvarWake(*self.lock.get(), 1);
+            //libnx::condvarWake(*self.lock.get(), 1);
+            //LibNX's condvarWake gets inlined to this
+            libnx::svcSignalProcessWideKey(*self.lock.get(), 1);
         }
     }
 
@@ -180,7 +182,9 @@ impl Condvar {
                 return;
             }
 
-            libnx::condvarWake(*self.lock.get(), -1);
+            //libnx::condvarWake(*self.lock.get(), -1);
+            //LibNX's condvarWake gets inlined to this
+            libnx::svcSignalProcessWideKey(*self.lock.get(), -1);
 
         }
     }
@@ -194,19 +198,11 @@ impl Condvar {
     pub fn wait_timeout(&self, mutex: &Mutex, dur: Duration) -> bool {
         let dur_millis = (dur.as_secs() * 1000) + (dur.subsec_millis() as u64);
         unsafe {
-            let lock = self.lock.get();
-
-            if ((**lock).mutex) != mutex::raw(mutex) as *mut i32 {
-                if *lock != ptr::null_mut() {
-                    panic!("Condvar used with more than one Mutex");
-                }
-
-                atomic_cxchg(lock as *mut usize, 0, mutex::raw(mutex) as usize);
-            }
 
             mutex.unlock();
 
-            libnx::condvarWaitTimeout(*self.lock.get(), dur_millis);
+            let nx_inner_mut = &mutex.inner;
+            libnx::condvarWaitTimeout(*self.lock.get(), nx_inner_mut.get() as *mut _, dur_millis);
 
             mutex.lock();
         }

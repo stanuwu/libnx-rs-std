@@ -103,7 +103,7 @@ mod switch {
     use libnx_rs::libnx;
 
     pub struct Mutex {
-        inner: UnsafeCell<libnx::Mutex>,
+        pub inner: UnsafeCell<libnx::Mutex>,
     }
 
     #[inline]
