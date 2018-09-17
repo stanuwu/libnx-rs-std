@@ -99,7 +99,7 @@ unsafe impl Alloc for System {
     }
 }
 
-#[cfg(any(windows, unix, target_os = "cloudabi", target_os = "redox"))]
+#[cfg(any(windows, unix, target_os = "cloudabi", target_os = "redox", target_os="horizon"))]
 mod realloc_fallback {
     use core::alloc::{GlobalAlloc, Layout};
     use core::cmp;
@@ -122,7 +122,7 @@ mod realloc_fallback {
     }
 }
 
-#[cfg(any(unix, target_os = "cloudabi", target_os = "redox"))]
+#[cfg(any(unix, target_os = "cloudabi", target_os = "redox", target_os="horizon"))]
 mod platform {
     extern crate libc;
 
