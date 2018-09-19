@@ -198,17 +198,15 @@ fn default_hook(info: &PanicInfo) {
     let name = thread.as_ref().and_then(|t| t.name()).unwrap_or("<unnamed>");
 
     // 3DS-specific code begins here to display panics via the Error applet
-    #[cfg(target_arch="aarch64")]
-    use libnx_rs::libnx::{consoleDebugInit, debugDevice_debugDevice_SVC};
     #[cfg(not(target_arch="aarch64"))]
     use libctru::{errorInit, errorText, errorDisp, errorConf, ERROR_TEXT_WORD_WRAP,
                   CFG_LANGUAGE_EN, consoleDebugInit, debugDevice_SVC};
 
-    let error_text = format!("thread '{}' panicked at '{}', {}", name, msg, location);
 
     #[cfg(not(target_arch="aarch64"))]
     unsafe {
         // Prepare error message for display
+        let error_text = format!("thread '{}' panicked at '{}', {}", name, msg, location);
         let mut error_conf: errorConf = mem::uninitialized();
         errorInit(&mut error_conf,
                   ERROR_TEXT_WORD_WRAP,
@@ -217,16 +215,6 @@ fn default_hook(info: &PanicInfo) {
 
         // Display the error
         errorDisp(&mut error_conf);
-    }
-
-    // Let's also write to stderr using the debug console. The output will be
-    // visible in Citra if a custom logging filter such as `Debug.Emulated:Debug`
-    // is enabled in the logging section of `~/.config/citra-emu/sdl2-config.ini`
-    //TODO: Correct this name in libnx-rs so it matchs the libctru one
-    unsafe {
-        #[cfg(target_arch = "aarch64")]
-        consoleDebugInit(debugDevice_debugDevice_SVC);
-        #[cfg(not(target_arch = "aarch64"))]
         consoleDebugInit(debugDevice_SVC);
     }
 
