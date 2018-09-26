@@ -103,7 +103,7 @@ mod switch {
     use libnx_rs::libnx;
 
     pub struct Mutex {
-        pub inner: UnsafeCell<libnx::Mutex>,
+        inner: UnsafeCell<libnx::Mutex>,
     }
 
     #[inline]
@@ -122,7 +122,6 @@ mod switch {
 
         #[inline]
         pub unsafe fn init(&mut self) {
-            //Libnx's init is inlined and just sets the value to 0
             self.inner = UnsafeCell::new(0);
         }
 
@@ -153,14 +152,22 @@ mod switch {
 
     impl ReentrantMutex {
         pub unsafe fn uninitialized() -> ReentrantMutex {
-            ReentrantMutex { inner: mem::uninitialized() }
+            ReentrantMutex { 
+                inner: UnsafeCell::new(libnx::RMutex {
+                    lock : 0,
+                    thread_tag : 0,
+                    counter : 0,
+                })
+            }
         }
 
         pub unsafe fn init(&mut self) {
-            //Libnx's init is inlined and just sets the value to 0
-            //TODO: this is an internal type. Figure out whats going on here.
-            let nw : libnx::__lock_t = mem::zeroed();
-            self.inner = UnsafeCell::new(nw);
+            let mtx = libnx::RMutex {
+                lock : 0,
+                thread_tag : 0,
+                counter : 0
+            };
+            self.inner = UnsafeCell::new(mtx);
         }
 
         pub unsafe fn lock(&self) {
