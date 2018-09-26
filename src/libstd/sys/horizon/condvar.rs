@@ -19,6 +19,7 @@ use time::Duration;
 use libnx_rs::{libnx};
 
 use sys::mutex::{self, Mutex};
+use mem;
 
 #[cfg(not(target_arch = "aarch64"))]
 pub struct Condvar {
@@ -27,8 +28,7 @@ pub struct Condvar {
 
 #[cfg(target_arch = "aarch64")]
 pub struct Condvar {
-    tag : u32, 
-    lock: UnsafeCell<*mut libnx::CondVar>,
+    lock: UnsafeCell<libnx::CondVar>,
 }
 
 unsafe impl Send for Condvar {}
@@ -151,41 +151,29 @@ impl Condvar {
 
 #[cfg(target_arch = "aarch64")]
 impl Condvar {
+
     pub const fn new() -> Condvar {
         Condvar {
-            tag : 0,
-            lock: UnsafeCell::new(ptr::null_mut()),
+            lock: UnsafeCell::new(0),
         }
     }
 
     #[inline]
     pub unsafe fn init(&mut self) {
-        self.tag = 0;
-        *self.lock.get() = ptr::null_mut();
+        self.lock = UnsafeCell::new(mem::zeroed());
     }
 
     #[inline]
     pub fn notify_one(&self) {
         unsafe {
-            //libnx::condvarWake(*self.lock.get(), 1);
-            //LibNX's condvarWake gets inlined to this
-            libnx::svcSignalProcessWideKey(*self.lock.get(), 1);
+            libnx::svcSignalProcessWideKey(self.lock.get(), 1);
         }
     }
 
     #[inline]
     pub fn notify_all(&self) {
         unsafe {
-            let lock = self.lock.get();
-
-            if *lock == ptr::null_mut() {
-                return;
-            }
-
-            //libnx::condvarWake(*self.lock.get(), -1);
-            //LibNX's condvarWake gets inlined to this
-            libnx::svcSignalProcessWideKey(*self.lock.get(), -1);
-
+            libnx::svcSignalProcessWideKey(self.lock.get(), -1);
         }
     }
 
@@ -198,19 +186,12 @@ impl Condvar {
     pub fn wait_timeout(&self, mutex: &Mutex, dur: Duration) -> bool {
         let dur_millis = (dur.as_secs() * 1000) + (dur.subsec_millis() as u64);
         unsafe {
-
-            mutex.unlock();
-
-            let nx_inner_mut = &mutex.inner;
-            libnx::condvarWaitTimeout(*self.lock.get(), nx_inner_mut.get() as *mut _, dur_millis);
-
-            mutex.lock();
+            libnx::condvarWaitTimeout(self.lock.get(), mutex::raw(&mutex), dur_millis);
         }
         true
     }
 
     #[inline]
     pub unsafe fn destroy(&self) {
-        *self.lock.get() = ptr::null_mut();
     }
 }
