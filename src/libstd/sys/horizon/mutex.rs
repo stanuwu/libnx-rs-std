@@ -62,22 +62,83 @@ unsafe impl Send for ReentrantMutex {}
 unsafe impl Sync for ReentrantMutex {}
 
     pub struct Mutex {
-        pub inner: UnsafeCell<libnx::Mutex>,
+        inner: UnsafeCell<libnx::Mutex>,
     }
 
     pub unsafe fn init(&mut self) {
         ::libctru::RecursiveLock_Init(self.inner.get());
     }
 
-    pub unsafe fn lock(&self) {
-        ::libctru::RecursiveLock_Lock(self.inner.get());
+    unsafe impl Send for Mutex {}
+    unsafe impl Sync for Mutex {}
+
+    #[cfg(target_arch = "aarch64")]
+    impl Mutex {
+        pub const fn new() -> Mutex {
+            Mutex { inner: UnsafeCell::new(0) }
+        }
+
+        #[inline]
+        pub unsafe fn init(&mut self) {
+            self.inner = UnsafeCell::new(0);
+        }
+
+        #[inline]
+        pub unsafe fn lock(&self) {
+            libnx::mutexLock(self.inner.get());
+        }
+
+        #[inline]
+        pub unsafe fn unlock(&self) {
+            libnx::mutexUnlock(self.inner.get());
+        }
+
+        #[inline]
+        pub unsafe fn try_lock(&self) -> bool {
+            libnx::mutexTryLock(self.inner.get()) 
+        }
+
+        #[inline]
+        pub unsafe fn destroy(&self) {
+        }
     }
 
-    #[inline]
-    pub unsafe fn try_lock(&self) -> bool {
-        match ::libctru::RecursiveLock_TryLock(self.inner.get()) {
-            0 => false,
-            _ => true,
+    pub struct ReentrantMutex { inner: UnsafeCell<libnx::RMutex> }
+
+    unsafe impl Send for ReentrantMutex {}
+    unsafe impl Sync for ReentrantMutex {}
+
+    impl ReentrantMutex {
+        pub unsafe fn uninitialized() -> ReentrantMutex {
+            ReentrantMutex { 
+                inner: UnsafeCell::new(libnx::RMutex {
+                    lock : 0,
+                    thread_tag : 0,
+                    counter : 0,
+                })
+            }
+        }
+
+        pub unsafe fn init(&mut self) {
+            let mtx = libnx::RMutex {
+                lock : 0,
+                thread_tag : 0,
+                counter : 0
+            };
+            self.inner = UnsafeCell::new(mtx);
+        }
+
+        pub unsafe fn lock(&self) {
+            libnx::rmutexLock(self.inner.get());
+        }
+
+        #[inline]
+        pub unsafe fn try_lock(&self) -> bool {
+            libnx::rmutexTryLock(self.inner.get())
+        }
+
+        pub unsafe fn unlock(&self) {
+            libnx::rmutexUnlock(self.inner.get());
         }
     }
 
