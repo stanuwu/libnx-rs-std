@@ -352,7 +352,14 @@ extern crate alloc_system;
 extern crate libc;
 
 // 3DS-specific dependency
-extern crate ctru_sys as libctru;
+#[cfg(all(target_os = "horizon", not(target_arch = "aarch64")))]
+extern crate ctry_sys as libctru;
+
+#[cfg(all(target_os="horizon", target_arch = "aarch64"))]
+extern crate libnx_rs;
+
+
+
 
 // We always need an unwinder currently for backtraces
 //#[doc(masked)]

@@ -1,21 +1,9 @@
-[submodule "src/jemalloc"]
-	path = src/jemalloc
-	url = https://github.com/rust-lang/jemalloc.git
 [submodule "src/rust-installer"]
 	path = src/tools/rust-installer
 	url = https://github.com/rust-lang/rust-installer.git
 [submodule "src/liblibc"]
 	path = src/liblibc
 	url = https://github.com/rust-lang/libc.git
-[submodule "src/dlmalloc"]
-	path = src/dlmalloc
-	url = https://github.com/alexcrichton/dlmalloc-rs.git
-[submodule "src/stdsimd"]
-	path = src/stdsimd
-	url = https://github.com/rust-lang-nursery/stdsimd.git
 [submodule "src/tools/lld"]
 	path = src/tools/lld
 	url = https://github.com/rust-lang/lld.git
-[submodule "src/libbacktrace"]
-	path = src/libbacktrace
-	url = https://github.com/rust-lang-nursery/libbacktrace.git

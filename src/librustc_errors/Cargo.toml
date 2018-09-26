@@ -6,7 +6,6 @@ version = "0.0.0"
 [lib]
 name = "rustc_errors"
 path = "lib.rs"
-crate-type = ["dylib"]
 
 [dependencies]
 log = "0.4"
@@ -16,4 +15,8 @@ rustc_data_structures = { path = "../librustc_data_structures" }
 rustc_cratesio_shim = { path = "../librustc_cratesio_shim" }
 unicode-width = "0.1.4"
 atty = "0.2"
+<<<<<<< HEAD
 termcolor = "1.0"
+=======
+termcolor = "0.3"
+>>>>>>> ef3f51f65f30a5a8503ff4812e36de918ced03e7

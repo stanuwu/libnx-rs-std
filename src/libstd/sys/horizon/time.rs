@@ -122,6 +122,7 @@ mod inner {
     use super::NSEC_PER_SEC;
     use super::Timespec;
 
+    #[cfg(not(target_arch = "aarch64"))]
     use libctru;
 
     #[derive(Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Debug, Hash)]
@@ -198,9 +199,16 @@ mod inner {
     }
 
     // Gets the current system tick
+    #[cfg(not(target_arch = "aarch64"))]
     #[inline]
     fn get_system_tick() -> u64 {
         unsafe { libctru::svcGetSystemTick() }
+    }
+
+    #[cfg(target_arch = "aarch64")]
+    #[inline]
+    fn get_system_tick() -> u64 {
+        unsafe { libnx_rs::libnx::svcGetSystemTick() }
     }
 
     // A struct representing the clock speed of the 3DS

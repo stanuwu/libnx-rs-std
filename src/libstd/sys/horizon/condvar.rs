@@ -15,9 +15,13 @@ use intrinsics::atomic_cxchg;
 use ptr;
 use time::Duration;
 
+#[cfg(target_arch = "aarch64")]
+use libnx_rs::{libnx};
+
 use sys::mutex::{self, Mutex};
 use mem;
 
+#[cfg(not(target_arch = "aarch64"))]
 pub struct Condvar {
     lock: UnsafeCell<*mut ::libctru::LightLock>,
 }
@@ -30,6 +34,7 @@ pub struct Condvar {
 unsafe impl Send for Condvar {}
 unsafe impl Sync for Condvar {}
 
+#[cfg(not(target_arch = "aarch64"))]
 impl Condvar {
     pub const fn new() -> Condvar {
         Condvar {

@@ -203,6 +203,7 @@ fn default_hook(info: &PanicInfo) {
                   CFG_LANGUAGE_EN, consoleDebugInit, debugDevice_SVC};
 
 
+    #[cfg(not(target_arch="aarch64"))]
     unsafe {
         // Prepare error message for display
         let error_text = format!("thread '{}' panicked at '{}', {}", name, msg, location);
@@ -223,7 +224,7 @@ fn default_hook(info: &PanicInfo) {
 
         #[cfg(feature = "backtrace")]
         {
-            use sync::atomic::{AtomicBool, Ordering};
+            use core::sync::atomic::{AtomicBool, Ordering};
 
             static FIRST_PANIC: AtomicBool = AtomicBool::new(true);
 
