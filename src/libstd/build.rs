@@ -10,7 +10,6 @@
 
 #![deny(warnings)]
 #![allow(dead_code)]
-#![feature(extern_prelude)]
 
 extern crate cc;
 

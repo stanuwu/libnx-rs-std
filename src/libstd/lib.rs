@@ -315,8 +315,6 @@
 
 #![default_lib_allocator]
 
-#![feature(extern_prelude)]
-
 // Always use alloc_system during stage0 since we don't know if the alloc_*
 // crate the stage0 compiler will pick by default is enabled (e.g.
 // if the user has disabled jemalloc in `./configure`).
