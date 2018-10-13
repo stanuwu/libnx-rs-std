@@ -387,6 +387,13 @@ impl Builder {
     pub fn spawn<F, T>(self, f: F) -> io::Result<JoinHandle<T>> where
         F: FnOnce() -> T, F: Send + 'static, T: Send + 'static
     {
+        unsafe { self.spawn_unchecked(f) }
+    }
+    
+    /// TODO: Doc
+    pub unsafe fn spawn_unchecked<'a, F, T>(self, f: F) -> io::Result<JoinHandle<T>> where
+        F: FnOnce() -> T, F: Send + 'a, T: Send + 'a
+    {
         let Builder { name, stack_size } = self;
 
         let stack_size = stack_size.unwrap_or_else(thread::min_stack);
@@ -402,7 +409,7 @@ impl Builder {
             if let Some(name) = their_thread.cname() {
                 imp::Thread::set_name(name);
             }
-            unsafe {
+
                 thread_info::set(imp::guard::current(), their_thread);
                 #[cfg(feature = "backtrace")]
                 let try_result = panic::catch_unwind(panic::AssertUnwindSafe(|| {
@@ -411,7 +418,6 @@ impl Builder {
                 #[cfg(not(feature = "backtrace"))]
                 let try_result = panic::catch_unwind(panic::AssertUnwindSafe(f));
                 *their_packet.get() = Some(try_result);
-            }
         };
 
         Ok(JoinHandle(JoinInner {
