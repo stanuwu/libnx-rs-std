@@ -1063,7 +1063,7 @@ impl CStr {
     /// ```
     #[cfg(target_os = "horizon")] 
     #[stable(feature = "rust1", since = "1.0.0")]
-    pub unsafe fn from_ptr<'a>(ptr: *const c_char) -> &'a CStr {
+    pub unsafe fn from_ptr<'a>(ptr: *const i8) -> &'a CStr {
         let len = sys::strlen(ptr as *const u8);
         let ptr = ptr as *const u8;
         CStr::from_bytes_with_nul_unchecked(slice::from_raw_parts(ptr, len as usize + 1))
