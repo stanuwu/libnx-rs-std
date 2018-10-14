@@ -250,10 +250,12 @@ impl<T: 'static> LocalKey<T> {
     }
 
     unsafe fn init(&self, slot: &UnsafeCell<Option<T>>) -> &T {
+        use mem;
+        use ptr;
         // Execute the initialization up front, *then* move it into our slot,
         // just in case initialization fails.
         let value = (self.init)();
-        let ptr = slot.get();
+        let sltptr = slot.get();
 
         // note that this can in theory just be `*ptr = Some(value)`, but due to
         // the compiler will currently codegen that pattern with something like:
@@ -267,9 +269,28 @@ impl<T: 'static> LocalKey<T> {
         // value (an aliasing violation). To avoid setting the "I'm running a
         // destructor" flag we just use `mem::replace` which should sequence the
         // operations a little differently and make this safe to call.
-        mem::replace(&mut *ptr, Some(value));
+        let wrapped = Some(value);
+        let sz = mem::size_of_val(&wrapped);
+        
+        let wrapped_ptr = &wrapped as *const _ as *const u8;
+        for idx in 0..sz {
+            let byte : u8 = *wrapped_ptr.offset(idx as isize);
+        }
+        for idx in 0..sz {
+            let byte : u8 = *wrapped_ptr.offset(idx as isize);
+            ptr::write((sltptr as *mut u8).offset(idx as isize), byte);
+        }
+        for idx in 0..sz {
+            let byte : u8 = *(sltptr as *mut u8).offset(idx as isize);
+        }
 
-        (*ptr).as_ref().unwrap()
+        let retval_opt = sltptr.as_ref().and_then(|n| n.as_ref());
+        match retval_opt {
+            Some(r) => r, 
+            None => {
+                panic!("Bad TLS! Bad boy!");
+            }
+        }
     }
 
     /// Acquires a reference to the value in this TLS key.
@@ -287,14 +308,30 @@ impl<T: 'static> LocalKey<T> {
     where
         F: FnOnce(&T) -> R,
     {
+        use intrinsics::type_name;
         unsafe {
-            let slot = (self.inner)().ok_or(AccessError {
+            let slot_res = (self.inner)().ok_or(AccessError {
                 _private: (),
-            })?;
-            Ok(f(match *slot.get() {
-                Some(ref inner) => inner,
-                None => self.init(slot),
-            }))
+            });
+            let slot : &UnsafeCell<Option<T>>= match slot_res {
+                Ok(sl) => sl, 
+                Err(e) => {
+                    return Err(e);
+                }
+            };
+
+            let slot_ptr : *mut Option<T> = slot.get();
+            let slot_opt_vl : Option<T> = slot_ptr.read();
+            let slot_vl = match slot_opt_vl {
+                Some(ref inner) => {
+                    inner
+                },
+                None => {
+                    self.init(slot)
+                }
+            };
+            let res = f(slot_vl);
+            Ok(res)
         }
     }
 }

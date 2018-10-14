@@ -45,7 +45,8 @@ pub unsafe fn register_dtor(t: *mut u8, dtor: unsafe extern fn(*mut u8)) {
 
 #[cfg(all(target_os = "horizon", target_arch="aarch64"))]
 pub unsafe fn register_dtor(t: *mut u8, dtor: unsafe extern fn(*mut u8)) {
-    //NOP
+    use sys_common::thread_local::register_dtor_fallback;
+    register_dtor_fallback(t, dtor);
 }
 
 // macOS's analog of the above linux function is this _tlv_atexit function.
