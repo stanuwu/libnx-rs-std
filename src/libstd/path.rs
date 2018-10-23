@@ -442,7 +442,7 @@ impl<'a> PrefixComponent<'a> {
     ///
     /// [`Prefix`]: enum.Prefix.html
     #[stable(feature = "rust1", since = "1.0.0")]
-    pub const fn kind(&self) -> Prefix<'a> {
+    pub fn kind(&self) -> Prefix<'a> {
         self.parsed
     }
 
@@ -450,7 +450,7 @@ impl<'a> PrefixComponent<'a> {
     ///
     /// [`OsStr`]: ../../std/ffi/struct.OsStr.html
     #[stable(feature = "rust1", since = "1.0.0")]
-    pub const fn as_os_str(&self) -> &'a OsStr {
+    pub fn as_os_str(&self) -> &'a OsStr {
         self.raw
     }
 }
@@ -1921,7 +1921,7 @@ impl Path {
     /// [`None`]: ../../std/option/enum.Option.html#variant.None
     /// [`parent`]: struct.Path.html#method.parent
     #[stable(feature = "path_ancestors", since = "1.28.0")]
-    pub const fn ancestors(&self) -> Ancestors {
+    pub fn ancestors(&self) -> Ancestors {
         Ancestors {
             next: Some(&self),
         }
@@ -2270,7 +2270,7 @@ impl Path {
     /// println!("{}", path.display());
     /// ```
     #[stable(feature = "rust1", since = "1.0.0")]
-    pub const fn display(&self) -> Display {
+    pub fn display(&self) -> Display {
         Display { path: self }
     }
 
