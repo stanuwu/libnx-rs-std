@@ -201,7 +201,7 @@ impl TcpStream {
         Ok(TcpStream { inner: sock })
     }
 
-    pub const fn socket(&self) -> &Socket { &self.inner }
+    pub fn socket(&self) -> &Socket { &self.inner }
 
     pub fn into_socket(self) -> Socket { self.inner }
 
@@ -341,7 +341,7 @@ impl TcpListener {
         Ok(TcpListener { inner: sock })
     }
 
-    pub const fn socket(&self) -> &Socket { &self.inner }
+    pub fn socket(&self) -> &Socket { &self.inner }
 
     pub fn into_socket(self) -> Socket { self.inner }
 
@@ -429,7 +429,7 @@ impl UdpSocket {
         Ok(UdpSocket { inner: sock })
     }
 
-    pub const fn socket(&self) -> &Socket { &self.inner }
+    pub fn socket(&self) -> &Socket { &self.inner }
 
     pub fn into_socket(self) -> Socket { self.inner }
 
