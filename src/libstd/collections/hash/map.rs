@@ -37,7 +37,7 @@ struct DefaultResizePolicy;
 
 impl DefaultResizePolicy {
     #[inline]
-    fn new() -> DefaultResizePolicy {
+    const fn new() -> DefaultResizePolicy {
         DefaultResizePolicy
     }
 
@@ -70,7 +70,7 @@ impl DefaultResizePolicy {
 
     /// The capacity of the given raw capacity.
     #[inline]
-    fn capacity(&self, raw_cap: usize) -> usize {
+    const fn capacity(&self, raw_cap: usize) -> usize {
         // This doesn't have to be checked for overflow since allocation size
         // in bytes will overflow earlier than multiplication by 10.
         //
@@ -3024,7 +3024,7 @@ impl<'a, K: 'a, V: 'a> VacantEntry<'a, K, V> {
     /// assert_eq!(map.entry("poneyland").key(), &"poneyland");
     /// ```
     #[stable(feature = "map_entry_keys", since = "1.10.0")]
-    pub fn key(&self) -> &K {
+    pub const fn key(&self) -> &K {
         &self.key
     }
 
