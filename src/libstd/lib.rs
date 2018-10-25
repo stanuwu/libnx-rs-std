@@ -311,6 +311,7 @@
 #![feature(panic_info_message)]
 #![feature(non_exhaustive)]
 #![feature(panic_unwind)]
+#![feature(alloc_layout_extra)]
 
 #![default_lib_allocator]
 
