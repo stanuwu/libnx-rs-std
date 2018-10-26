@@ -374,7 +374,7 @@ impl DirEntry {
               target_os = "horizon"))]
     fn name_bytes(&self) -> &[u8] {
         unsafe {
-            CStr::from_ptr(self.entry.d_name.as_ptr() as *const i8).to_bytes()
+            CStr::from_ptr(self.entry.d_name.as_ptr()).to_bytes()
         }
     }
     #[cfg(any(target_os = "solaris",

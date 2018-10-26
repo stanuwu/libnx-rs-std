@@ -61,7 +61,7 @@ pub fn getcwd() -> io::Result<PathBuf> {
         unsafe {
             let ptr = buf.as_mut_ptr() as *mut libc::c_char;
             if !libc::getcwd(ptr, buf.capacity()).is_null() {
-                let len = CStr::from_ptr(buf.as_ptr() as *const i8).to_bytes().len();
+                let len = CStr::from_ptr(buf.as_ptr()).to_bytes().len();
                 buf.set_len(len);
                 buf.shrink_to_fit();
                 return Ok(PathBuf::from(OsString::from_vec(buf)));

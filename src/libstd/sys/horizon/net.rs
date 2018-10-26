@@ -62,7 +62,7 @@ pub fn cvt_gai(err: c_int) -> io::Result<()> {
     }
 
     let detail = unsafe {
-        str::from_utf8(CStr::from_ptr(libc::gai_strerror(err) as *const i8).to_bytes()).unwrap()
+        str::from_utf8(CStr::from_ptr(libc::gai_strerror(err)).to_bytes()).unwrap()
             .to_owned()
     };
     Err(io::Error::new(io::ErrorKind::Other,

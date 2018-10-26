@@ -50,7 +50,7 @@ where F: FnMut(&[u8], u32) -> io::Result<()>
     if ret == 0 {
         for &(file, line) in &fileline_buf[..fileline_count] {
             if file.is_null() { continue; } // just to be sure
-            let file = unsafe { CStr::from_ptr(file as *const i8).to_bytes() };
+            let file = unsafe { CStr::from_ptr(file).to_bytes() };
             f(file, line)?;
         }
         Ok(fileline_count == FILELINE_SIZE)
@@ -86,7 +86,7 @@ pub fn resolve_symname<F>(frame: Frame,
             None
         } else {
             unsafe {
-                CStr::from_ptr(data as *const i8).to_str().ok()
+                CStr::from_ptr(data).to_str().ok()
             }
         }
     };

@@ -1018,7 +1018,6 @@ impl CStr {
     /// }
     /// # }
     /// ```
-    #[cfg(not(target_os = "horizon"))] 
     #[stable(feature = "rust1", since = "1.0.0")]
     pub unsafe fn from_ptr<'a>(ptr: *const c_char) -> &'a CStr {
         let len = sys::strlen(ptr);
@@ -1026,48 +1025,6 @@ impl CStr {
         CStr::from_bytes_with_nul_unchecked(slice::from_raw_parts(ptr, len as usize + 1))
     }
 
-    /// Wraps a raw C string with a safe C string wrapper.
-    ///
-    /// This function will wrap the provided `ptr` with a `CStr` wrapper, which
-    /// allows inspection and interoperation of non-owned C strings. This method
-    /// is unsafe for a number of reasons:
-    ///
-    /// * There is no guarantee to the validity of `ptr`.
-    /// * The returned lifetime is not guaranteed to be the actual lifetime of
-    ///   `ptr`.
-    /// * There is no guarantee that the memory pointed to by `ptr` contains a
-    ///   valid nul terminator byte at the end of the string.
-    /// * It is not guaranteed that the memory pointed by `ptr` won't change
-    ///   before the `CStr` has been destroyed.
-    ///
-    /// > **Note**: This operation is intended to be a 0-cost cast but it is
-    /// > currently implemented with an up-front calculation of the length of
-    /// > the string. This is not guaranteed to always be the case.
-    ///
-    /// # Examples
-    ///
-    /// ```ignore (extern-declaration)
-    /// # fn main() {
-    /// use std::ffi::CStr;
-    /// use std::os::raw::c_char;
-    ///
-    /// extern {
-    ///     fn my_string() -> *const c_char;
-    /// }
-    ///
-    /// unsafe {
-    ///     let slice = CStr::from_ptr(my_string());
-    ///     println!("string returned: {}", slice.to_str().unwrap());
-    /// }
-    /// # }
-    /// ```
-    #[cfg(target_os = "horizon")] 
-    #[stable(feature = "rust1", since = "1.0.0")]
-    pub unsafe fn from_ptr<'a>(ptr: *const i8) -> &'a CStr {
-        let len = sys::strlen(ptr as *const u8);
-        let ptr = ptr as *const u8;
-        CStr::from_bytes_with_nul_unchecked(slice::from_raw_parts(ptr, len as usize + 1))
-    }
     /// Creates a C string wrapper from a byte slice.
     ///
     /// This function will cast the provided `bytes` to a `CStr`

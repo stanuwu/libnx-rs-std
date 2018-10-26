@@ -26,7 +26,7 @@ pub fn resolve_symname<F>(frame: Frame,
                          info.dli_sname.is_null() {
             None
         } else {
-            CStr::from_ptr(info.dli_sname as *const i8).to_str().ok()
+            CStr::from_ptr(info.dli_sname).to_str().ok()
         };
         callback(symname)
     }
