@@ -14,6 +14,7 @@
 
 use cell::UnsafeCell;
 use fmt;
+use hint;
 use mem;
 
 /// A thread local storage key which owns its contents.
@@ -284,12 +285,14 @@ impl<T: 'static> LocalKey<T> {
             let byte : u8 = *(sltptr as *mut u8).offset(idx as isize);
         }
 
-        let retval_opt = sltptr.as_ref().and_then(|n| n.as_ref());
-        match retval_opt {
-            Some(r) => r, 
-            None => {
-                panic!("Bad TLS! Bad boy!");
-            }
+        // After storing `Some` we want to get a reference to the contents of
+        // what we just stored. While we could use `unwrap` here and it should
+        // always work it empirically doesn't seem to always get optimized away,
+        // which means that using something like `try_with` can pull in
+        // panicking code and cause a large size bloat.
+        match *ptr {
+            Some(ref x) => x,
+            None => hint::unreachable_unchecked(),
         }
     }
 
