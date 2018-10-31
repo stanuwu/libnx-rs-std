@@ -41,20 +41,45 @@ impl Timespec {
         }
     }
 
+<<<<<<< HEAD
     fn checked_add_duration(&self, other: &Duration) -> Option<Timespec> {
         let mut secs = other
             .as_secs()
             .try_into() // <- target type would be `i64`
             .ok()
             .and_then(|secs| self.t.tv_sec.checked_add(secs))?;
+=======
+    fn add_duration(&self, other: &Duration) -> Timespec {
+        self.checked_add_duration(other).expect("overflow when adding duration to time")
+    }
+
+    fn checked_add_duration(&self, other: &Duration) -> Option<Timespec> {
+        let mut secs = match other
+            .as_secs()
+            .try_into() // <- target type would be `i64`
+            .ok()
+            .and_then(|secs| self.t.tv_sec.checked_add(secs))
+        {
+            Some(ts) => ts,
+            None => return None,
+        };
+>>>>>>> Implement checked_add_duration for SystemTime
 
         // Nano calculations can't overflow because nanos are <1B which fit
         // in a u32.
         let mut nsec = other.subsec_nanos() + self.t.tv_nsec as u32;
         if nsec >= NSEC_PER_SEC as u32 {
             nsec -= NSEC_PER_SEC as u32;
+<<<<<<< HEAD
             secs = secs.checked_add(1)?;
         }
+=======
+            secs = match secs.checked_add(1) {
+                Some(ts) => ts,
+                None => return None,
+        }
+        }
+>>>>>>> Implement checked_add_duration for SystemTime
         Some(Timespec {
             t: syscall::TimeSpec {
                 tv_sec: secs,
@@ -176,8 +201,17 @@ impl SystemTime {
         Some(SystemTime { t: self.t.checked_add_duration(other)? })
     }
 
+<<<<<<< HEAD
     pub fn checked_sub_duration(&self, other: &Duration) -> Option<SystemTime> {
         Some(SystemTime { t: self.t.checked_sub_duration(other)? })
+=======
+    pub fn checked_add_duration(&self, other: &Duration) -> Option<SystemTime> {
+        self.t.checked_add_duration(other).map(|t| SystemTime { t })
+    }
+
+    pub fn sub_duration(&self, other: &Duration) -> SystemTime {
+        SystemTime { t: self.t.sub_duration(other) }
+>>>>>>> Implement checked_add_duration for SystemTime
     }
 }
 
