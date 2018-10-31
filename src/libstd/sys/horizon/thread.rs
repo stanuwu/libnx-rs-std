@@ -129,9 +129,7 @@ mod switch {
     use time::Duration;
     use cell::UnsafeCell;
     use libnx_rs::libnx::Thread as SThread;
-
-    use libnx_rs::libc;
-    use libnx_rs::libnx;
+    use libc;
 
     #[repr(C)]
     pub struct ThreadHandle {
@@ -166,7 +164,7 @@ mod switch {
 
             let handle_mem : UnsafeCell<ThreadHandle> = UnsafeCell::new(mem::zeroed());
             let mut handle_ptr = handle_mem.get();
-            let rs = thrd_create(&mut handle_ptr as *mut *mut ThreadHandle, thread_func, &p as *const Box<FnBox() + 'a> as *mut Box<FnBox() + 'a> as *mut libnx::lang_items::c_void);
+            let rs = thrd_create(&mut handle_ptr as *mut *mut ThreadHandle, thread_func, &p as *const Box<FnBox() + 'a> as *mut Box<FnBox() + 'a> as *mut libc::c_void);
 
             return match rs {
                 1 => {
@@ -190,7 +188,7 @@ mod switch {
                 }
             };
 
-            extern "C" fn thread_func(start: *mut libnx::lang_items::c_void) -> i32 {
+            extern "C" fn thread_func(start: *mut libc::c_void) -> i32 {
                 unsafe { start_thread(start as *mut u8) };
                 0
             }
