@@ -54,16 +54,20 @@ impl Timespec {
     }
 
     fn checked_add_duration(&self, other: &Duration) -> Option<Timespec> {
-        let mut secs = match other
+        let mut secs = other
             .as_secs()
             .try_into() // <- target type would be `i64`
             .ok()
+<<<<<<< HEAD
             .and_then(|secs| self.t.tv_sec.checked_add(secs))
         {
             Some(ts) => ts,
             None => return None,
         };
 >>>>>>> Implement checked_add_duration for SystemTime
+=======
+            .and_then(|secs| self.t.tv_sec.checked_add(secs))?;
+>>>>>>> use ? operator instead of match
 
         // Nano calculations can't overflow because nanos are <1B which fit
         // in a u32.
@@ -71,12 +75,16 @@ impl Timespec {
         if nsec >= NSEC_PER_SEC as u32 {
             nsec -= NSEC_PER_SEC as u32;
 <<<<<<< HEAD
+<<<<<<< HEAD
             secs = secs.checked_add(1)?;
         }
 =======
             secs = match secs.checked_add(1) {
                 Some(ts) => ts,
                 None => return None,
+=======
+            secs = secs.checked_add(1)?;
+>>>>>>> use ? operator instead of match
         }
         }
 >>>>>>> Implement checked_add_duration for SystemTime
