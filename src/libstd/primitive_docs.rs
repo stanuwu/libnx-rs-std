@@ -427,7 +427,7 @@ mod prim_unit { }
 /// ## 3. Get it from C.
 ///
 /// ```
-/// # #![feature(libc)]
+/// # #![feature(rustc_private)]
 /// extern crate libc;
 ///
 /// use std::mem;
