@@ -313,6 +313,7 @@
 #![feature(non_exhaustive)]
 #![feature(panic_unwind)]
 #![feature(alloc_layout_extra)]
+#![feature(maybe_uninit)]
 
 #![default_lib_allocator]
 
