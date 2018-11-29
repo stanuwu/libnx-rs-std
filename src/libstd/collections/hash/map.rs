@@ -1574,10 +1574,7 @@ impl<K, V, S> HashMap<K, V, S>
     /// so that the map now contains keys which compare equal, search may start
     /// acting erratically, with two keys randomly masking each other. Implementations
     /// are free to assume this doesn't happen (within the limits of memory-safety).
-<<<<<<< HEAD
     #[inline(always)]
-=======
->>>>>>> Fix the tracking issue for hash_raw_entry
     #[unstable(feature = "hash_raw_entry", issue = "56167")]
     pub fn raw_entry_mut(&mut self) -> RawEntryBuilderMut<K, V, S> {
         self.reserve(1);
@@ -1918,10 +1915,7 @@ impl<'a, K, V, S> RawEntryBuilderMut<'a, K, V, S>
     }
 
     /// Create a `RawEntryMut` from the given key and its hash.
-<<<<<<< HEAD
     #[inline]
-=======
->>>>>>> Fix the tracking issue for hash_raw_entry
     #[unstable(feature = "hash_raw_entry", issue = "56167")]
     pub fn from_key_hashed_nocheck<Q: ?Sized>(self, hash: u64, k: &Q) -> RawEntryMut<'a, K, V, S>
         where K: Borrow<Q>,
@@ -1953,10 +1947,7 @@ impl<'a, K, V, S> RawEntryBuilderMut<'a, K, V, S>
         }
     }
     /// Create a `RawEntryMut` from the given hash.
-<<<<<<< HEAD
     #[inline]
-=======
->>>>>>> Fix the tracking issue for hash_raw_entry
     #[unstable(feature = "hash_raw_entry", issue = "56167")]
     pub fn from_hash<F>(self, hash: u64, is_match: F) -> RawEntryMut<'a, K, V, S>
         where for<'b> F: FnMut(&'b K) -> bool,
@@ -2234,10 +2225,7 @@ impl<'a, K, V, S> RawVacantEntryMut<'a, K, V, S> {
 
     /// Sets the value of the entry with the VacantEntry's key,
     /// and returns a mutable reference to it.
-<<<<<<< HEAD
     #[inline]
-=======
->>>>>>> Fix the tracking issue for hash_raw_entry
     #[unstable(feature = "hash_raw_entry", issue = "56167")]
     pub fn insert_hashed_nocheck(self, hash: u64, key: K, value: V) -> (&'a mut K, &'a mut V) {
         let hash = SafeHash::new(hash);
