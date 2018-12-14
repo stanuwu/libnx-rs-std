@@ -352,6 +352,7 @@ extern crate alloc as alloc_crate;
 extern crate alloc_system;
 #[doc(masked)]
 extern crate libc;
+extern crate rustc_demangle;
 
 // 3DS-specific dependency
 #[cfg(all(target_os = "horizon", not(target_arch = "aarch64")))]
