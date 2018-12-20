@@ -197,12 +197,12 @@ fn default_hook(info: &PanicInfo) {
     let name = thread.as_ref().and_then(|t| t.name()).unwrap_or("<unnamed>");
 
     // 3DS-specific code begins here to display panics via the Error applet
-    #[cfg(not(target_arch="aarch64"))]
+    #[cfg(all(target_os="horizon", not(target_arch="aarch64")))]
     use libctru::{errorInit, errorText, errorDisp, errorConf, ERROR_TEXT_WORD_WRAP,
                   CFG_LANGUAGE_EN, consoleDebugInit, debugDevice_SVC};
 
 
-    #[cfg(not(target_arch="aarch64"))]
+    #[cfg(all(target_os="horizon", not(target_arch="aarch64")))]
     unsafe {
         // Prepare error message for display
         let error_text = format!("thread '{}' panicked at '{}', {}", name, msg, location);
@@ -217,13 +217,13 @@ fn default_hook(info: &PanicInfo) {
         consoleDebugInit(debugDevice_SVC);
     }
 
-    let write = |err: &mut ::io::Write| {
+    let write = |err: &mut dyn (::io::Write)| {
         let _ = writeln!(err, "thread '{}' panicked at '{}', {}",
                          name, msg, location);
 
         #[cfg(feature = "backtrace")]
         {
-            use core::sync::atomic::{AtomicBool, Ordering};
+            use sync::atomic::{AtomicBool, Ordering};
 
             static FIRST_PANIC: AtomicBool = AtomicBool::new(true);
 
@@ -239,9 +239,9 @@ fn default_hook(info: &PanicInfo) {
     if let Some(mut local) = LOCAL_STDERR.with(|s| s.borrow_mut().take()) {
        write(&mut *local);
        let mut s = Some(local);
-           LOCAL_STDERR.with(|slot| {
-               *slot.borrow_mut() = s.take();
-           });
+       LOCAL_STDERR.with(|slot| {
+           *slot.borrow_mut() = s.take();
+       });
     } else if let Some(mut out) = panic_output() {
         write(&mut out);
     }

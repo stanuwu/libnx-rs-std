@@ -290,7 +290,7 @@ impl<T: 'static> LocalKey<T> {
         // always work it empirically doesn't seem to always get optimized away,
         // which means that using something like `try_with` can pull in
         // panicking code and cause a large size bloat.
-        match *ptr {
+        match *sltptr {
             Some(ref x) => x,
             None => hint::unreachable_unchecked(),
         }

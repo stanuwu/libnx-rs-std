@@ -231,7 +231,8 @@ impl Add<Duration> for Instant {
     type Output = Instant;
 
     fn add(self, other: Duration) -> Instant {
-        Instant(self.0.add_duration(&other))
+        self.checked_add(other)
+            .expect("overflow when adding duration to instant")
     }
 }
 
@@ -397,7 +398,8 @@ impl Add<Duration> for SystemTime {
     type Output = SystemTime;
 
     fn add(self, dur: Duration) -> SystemTime {
-        SystemTime(self.0.add_duration(&dur))
+        self.checked_add(dur)
+            .expect("overflow when adding duration to instant")
     }
 }
 
