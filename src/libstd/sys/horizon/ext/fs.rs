@@ -1,13 +1,3 @@
-// Copyright 2015 The Rust Project Developers. See the COPYRIGHT
-// file at the top-level directory of this distribution and at
-// http://rust-lang.org/COPYRIGHT.
-//
-// Licensed under the Apache License, Version 2.0 <LICENSE-APACHE or
-// http://www.apache.org/licenses/LICENSE-2.0> or the MIT license
-// <LICENSE-MIT or http://opensource.org/licenses/MIT>, at your
-// option. This file may not be copied, modified, or distributed
-// except according to those terms.
-
 //! Unix-specific extensions to primitives in the `std::fs` module.
 
 #![stable(feature = "rust1", since = "1.0.0")]
@@ -59,6 +49,77 @@ pub trait FileExt {
     #[stable(feature = "file_offset", since = "1.15.0")]
     fn read_at(&self, buf: &mut [u8], offset: u64) -> io::Result<usize>;
 
+    /// Reads the exact number of byte required to fill `buf` from the given offset.
+    ///
+    /// The offset is relative to the start of the file and thus independent
+    /// from the current cursor.
+    ///
+    /// The current file cursor is not affected by this function.
+    ///
+    /// Similar to [`Read::read_exact`] but uses [`read_at`] instead of `read`.
+    ///
+    /// [`Read::read_exact`]: ../../../../std/io/trait.Read.html#method.read_exact
+    /// [`read_at`]: #tymethod.read_at
+    ///
+    /// # Errors
+    ///
+    /// If this function encounters an error of the kind
+    /// [`ErrorKind::Interrupted`] then the error is ignored and the operation
+    /// will continue.
+    ///
+    /// If this function encounters an "end of file" before completely filling
+    /// the buffer, it returns an error of the kind [`ErrorKind::UnexpectedEof`].
+    /// The contents of `buf` are unspecified in this case.
+    ///
+    /// If any other read error is encountered then this function immediately
+    /// returns. The contents of `buf` are unspecified in this case.
+    ///
+    /// If this function returns an error, it is unspecified how many bytes it
+    /// has read, but it will never read more than would be necessary to
+    /// completely fill the buffer.
+    ///
+    /// [`ErrorKind::Interrupted`]: ../../../../std/io/enum.ErrorKind.html#variant.Interrupted
+    /// [`ErrorKind::UnexpectedEof`]: ../../../../std/io/enum.ErrorKind.html#variant.UnexpectedEof
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// use std::io;
+    /// use std::fs::File;
+    /// use std::os::unix::prelude::FileExt;
+    ///
+    /// fn main() -> io::Result<()> {
+    ///     let mut buf = [0u8; 8];
+    ///     let file = File::open("foo.txt")?;
+    ///
+    ///     // We now read exactly 8 bytes from the offset 10.
+    ///     file.read_exact_at(&mut buf, 10)?;
+    ///     println!("read {} bytes: {:?}", buf.len(), buf);
+    ///     Ok(())
+    /// }
+    /// ```
+    #[stable(feature = "rw_exact_all_at", since = "1.33.0")]
+    fn read_exact_at(&self, mut buf: &mut [u8], mut offset: u64) -> io::Result<()> {
+        while !buf.is_empty() {
+            match self.read_at(buf, offset) {
+                Ok(0) => break,
+                Ok(n) => {
+                    let tmp = buf;
+                    buf = &mut tmp[n..];
+                    offset += n as u64;
+                }
+                Err(ref e) if e.kind() == io::ErrorKind::Interrupted => {}
+                Err(e) => return Err(e),
+            }
+        }
+        if !buf.is_empty() {
+            Err(io::Error::new(io::ErrorKind::UnexpectedEof,
+                               "failed to fill whole buffer"))
+        } else {
+            Ok(())
+        }
+    }
+
     /// Writes a number of bytes starting from a given offset.
     ///
     /// Returns the number of bytes written.
@@ -93,6 +154,60 @@ pub trait FileExt {
     /// ```
     #[stable(feature = "file_offset", since = "1.15.0")]
     fn write_at(&self, buf: &[u8], offset: u64) -> io::Result<usize>;
+
+    /// Attempts to write an entire buffer starting from a given offset.
+    ///
+    /// The offset is relative to the start of the file and thus independent
+    /// from the current cursor.
+    ///
+    /// The current file cursor is not affected by this function.
+    ///
+    /// This method will continuously call [`write_at`] until there is no more data
+    /// to be written or an error of non-[`ErrorKind::Interrupted`] kind is
+    /// returned. This method will not return until the entire buffer has been
+    /// successfully written or such an error occurs. The first error that is
+    /// not of [`ErrorKind::Interrupted`] kind generated from this method will be
+    /// returned.
+    ///
+    /// # Errors
+    ///
+    /// This function will return the first error of
+    /// non-[`ErrorKind::Interrupted`] kind that [`write_at`] returns.
+    ///
+    /// [`ErrorKind::Interrupted`]: ../../../../std/io/enum.ErrorKind.html#variant.Interrupted
+    /// [`write_at`]: #tymethod.write_at
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// use std::fs::File;
+    /// use std::io;
+    /// use std::os::unix::prelude::FileExt;
+    ///
+    /// fn main() -> io::Result<()> {
+    ///     let file = File::open("foo.txt")?;
+    ///
+    ///     // We now write at the offset 10.
+    ///     file.write_all_at(b"sushi", 10)?;
+    ///     Ok(())
+    /// }
+    /// ```
+    #[stable(feature = "rw_exact_all_at", since = "1.33.0")]
+    fn write_all_at(&self, mut buf: &[u8], mut offset: u64) -> io::Result<()> {
+        while !buf.is_empty() {
+            match self.write_at(buf, offset) {
+                Ok(0) => return Err(io::Error::new(io::ErrorKind::WriteZero,
+                                                   "failed to write whole buffer")),
+                Ok(n) => {
+                    buf = &buf[n..];
+                    offset += n as u64
+                }
+                Err(ref e) if e.kind() == io::ErrorKind::Interrupted => {}
+                Err(e) => return Err(e),
+            }
+        }
+        Ok(())
+    }
 }
 
 #[stable(feature = "file_offset", since = "1.15.0")]
@@ -221,7 +336,7 @@ pub trait OpenOptionsExt {
     /// # Examples
     ///
     /// ```no_run
-    /// # #![feature(libc)]
+    /// # #![feature(rustc_private)]
     /// extern crate libc;
     /// use std::fs::OpenOptions;
     /// use std::os::unix::fs::OpenOptionsExt;
@@ -674,7 +789,7 @@ pub trait DirEntryExt {
 
 #[stable(feature = "dir_entry_ext", since = "1.1.0")]
 impl DirEntryExt for fs::DirEntry {
-    fn ino(&self) -> u64 { 0u64 }
+    fn ino(&self) -> u64 { self.as_inner().ino() }
 }
 
 /// Creates a new symbolic link on the filesystem.

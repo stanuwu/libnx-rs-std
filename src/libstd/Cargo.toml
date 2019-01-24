@@ -26,6 +26,7 @@ panic_abort = { path = "../libpanic_abort" }
 #profiler_builtins = { path = "../libprofiler_builtins", optional = true }
 unwind = { path = "../libunwind" }
 rustc-demangle = { version = "0.1.10", features = ['rustc-dep-of-std'] }
+backtrace-sys = { version = "0.1.24", features = ["rustc-dep-of-std"], optional = true }
 
 
 #TODO: Why is uncommenting this causing compile errors?
@@ -44,14 +45,14 @@ libnx-rs = { git = "https://github.com/ischeinkman/libnx-rs", features = ["sysro
 
 
 [target.x86_64-fortanix-unknown-sgx.dependencies]
-fortanix-sgx-abi = { version = "0.3.1", features = ['rustc-dep-of-std'] }
+fortanix-sgx-abi = { version = "0.3.2", features = ['rustc-dep-of-std'] }
 
 [build-dependencies]
 cc = "1.0"
 
 [features]
 default = []
-backtrace = []
+backtrace = ["backtrace-sys"]
 force_alloc_system = []
 panic-unwind = []
 #profiler = ["profiler_builtins"]

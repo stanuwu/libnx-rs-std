@@ -222,6 +222,7 @@
 #![no_std]
 
 #![deny(missing_docs)]
+#![deny(intra_doc_link_resolution_failure)]
 #![deny(missing_debug_implementations)]
 
 // Tell the compiler to link to either panic_abort or panic_unwind
@@ -248,16 +249,17 @@
 #![feature(c_variadic)]
 #![feature(cfg_target_has_atomic)]
 #![feature(cfg_target_thread_local)]
-#![feature(cfg_target_vendor)]
+#![cfg_attr(stage0, feature(cfg_target_vendor))]
 #![feature(char_error_internals)]
 #![feature(compiler_builtins_lib)]
-#![feature(const_int_ops)]
-#![feature(const_ip)]
+#![feature(concat_idents)]
+#![cfg_attr(stage0, feature(const_int_ops))]
+#![cfg_attr(stage0, feature(const_ip))]
 #![feature(const_raw_ptr_deref)]
 #![feature(const_cstr_unchecked)]
 #![feature(core_intrinsics)]
 #![feature(dropck_eyepatch)]
-#![feature(duration_as_u128)]
+#![feature(duration_constants)]
 #![feature(exact_size_is_empty)]
 #![feature(external_doc)]
 #![feature(fixed_size_array)]
@@ -272,7 +274,6 @@
 #![feature(libc)]
 #![feature(link_args)]
 #![feature(linkage)]
-#![cfg_attr(not(stage0), feature(min_const_unsafe_fn))]
 #![feature(needs_panic_runtime)]
 #![feature(never_type)]
 #![feature(nll)]
@@ -280,7 +281,6 @@
 #![feature(on_unimplemented)]
 #![feature(optin_builtin_traits)]
 #![feature(panic_internals)]
-#![feature(pin)]
 #![feature(prelude_import)]
 #![feature(ptr_internals)]
 #![feature(raw)]
@@ -296,6 +296,7 @@
 #![feature(staged_api)]
 #![feature(stmt_expr_attributes)]
 #![feature(str_internals)]
+#![feature(renamed_spin_loop)]
 #![feature(rustc_private)]
 #![feature(thread_local)]
 #![feature(toowned_clone_into)]
@@ -314,7 +315,6 @@
 #![feature(panic_unwind)]
 #![feature(alloc_layout_extra)]
 #![feature(maybe_uninit)]
-#![cfg_attr(target_env = "sgx", feature(global_asm, range_contains))]
 
 #![default_lib_allocator]
 
@@ -365,8 +365,11 @@ extern crate libnx_rs;
 
 // We always need an unwinder currently for backtraces
 //#[doc(masked)]
-//#[allow(unused_extern_crates)]
+#[allow(unused_extern_crates)]
 extern crate unwind;
+
+#[cfg(feature = "backtrace")]
+extern crate backtrace_sys;
 
 // During testing, this crate is not actually the "real" std library, but rather
 // it links to the real std library, which was compiled from this same source
@@ -376,7 +379,7 @@ extern crate unwind;
 // testing gives test-std access to real-std lang items and globals. See #2912
 #[cfg(test)] extern crate std as realstd;
 
-#[cfg(target_env = "sgx")]
+#[cfg(all(target_vendor = "fortanix", target_env = "sgx"))]
 #[macro_use]
 #[allow(unused_imports)] // FIXME: without `#[macro_use]`, get error: “cannot
                          // determine resolution for the macro `usercalls_asm`”
@@ -454,7 +457,7 @@ pub use alloc_crate::borrow;
 pub use alloc_crate::fmt;
 #[stable(feature = "rust1", since = "1.0.0")]
 pub use alloc_crate::format;
-#[unstable(feature = "pin", issue = "49150")]
+#[stable(feature = "pin", since = "1.33.0")]
 pub use core::pin;
 #[stable(feature = "rust1", since = "1.0.0")]
 pub use alloc_crate::slice;

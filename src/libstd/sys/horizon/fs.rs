@@ -339,6 +339,7 @@ impl DirEntry {
               target_os = "solaris",
               target_os = "haiku",
               target_os = "l4re",
+              target_os = "horizon",
               target_os = "fuchsia"))]
     pub fn ino(&self) -> u64 {
         self.entry.d_ino as u64

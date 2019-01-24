@@ -33,6 +33,12 @@ pub fn errno() -> i32 {
     }
 }
 
+pub fn set_errno(e: i32) {
+    unsafe {
+        (*__errno()) = e;
+    }
+}
+
 /// Gets a detailed string description for the given error number.
 pub fn error_string(errno: i32) -> String {
     extern {
