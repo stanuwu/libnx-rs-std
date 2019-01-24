@@ -9,9 +9,9 @@ autobenches = false
 name = "alloc"
 path = "lib.rs"
 
-[dependencies]
-core = { path = "../libcore" }
-compiler_builtins = { version = "0.1.0", features = ['rustc-dep-of-std'] }
+#[dependencies]
+#core = { path = "../libcore" }
+#compiler_builtins = { version = "0.1.0", features = ['rustc-dep-of-std'] }
 
 [dev-dependencies]
 rand = "0.6"
@@ -30,5 +30,5 @@ name = "vec_deque_append_bench"
 path = "../liballoc/benches/vec_deque_append.rs"
 harness = false
 
-[features]
-compiler-builtins-mem = ['compiler_builtins/mem']
+#[features]
+#compiler-builtins-mem = ['compiler_builtins/mem']
