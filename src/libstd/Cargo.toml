@@ -41,7 +41,7 @@ backtrace-sys = { version = "0.1.24", features = ["rustc-dep-of-std"], optional 
 #rustc_tsan = { path = "../librustc_tsan" }
 
 #[target.aarch64-none-elf.dependencies]
-libnx-rs = { git = "https://github.com/ischeinkman/libnx-rs", features = ["sysroot"]}
+libnx-rs = { git = "https://github.com/stanuwu/libnx-rs", features = ["sysroot"]}
 
 
 [target.x86_64-fortanix-unknown-sgx.dependencies]
